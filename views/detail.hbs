@@ -1,0 +1,198 @@
+<script src="/plugins/cms/controller.js"></script>
+
+<div class="workspace" ng-controller="view_script" >
+
+    <div class="toolbar">
+      <ul>
+        <li>
+          <button ng-click="goto('/admin/cms')"><i class="fa fa-caret-left" aria-hidden="true"></i> List</button>
+        </li>
+        <li>
+          <button ng-click="newThread()">New Thread</button>
+        </li>
+      </ul>
+      <ul class="right">
+        <li>
+          <button ng-click="save()">Save</button>
+        </li>
+        <li>
+          <button ng-click="logScript()">Debug</button>
+        </li>
+      </ul>
+    </div>
+
+  <section>
+    <div class="dialog_navigator pane">
+      <section class="threads">
+        <h2>{% ui.script.command %}</h2>
+        <ul ng-if="ui.script">
+          <li ng-repeat="thread in ui.script.threads" ng-if="thread.topic=='default'" ng-click="selectThread(thread.topic);" class="ng-class:{selected: (thread.topic==ui.current_thread.topic)};">
+            <div class="ellipsis_menu" ng-click="swallow($event)">
+              <ul>
+                <li ng-click="copyThread(thread)">Copy</li>
+                <li ng-click="cloneThread(thread)">Duplicate</li>
+              </ul>
+            </div>
+            {% thread.topic %}
+          </li>
+          <li ng-repeat="thread in ui.script.threads | orderBy: 'thread.topic'"  ng-click="selectThread(thread.topic);" ng-if="thread.topic!='default'" class="ng-class:{selected: (thread.topic==ui.current_thread.topic)};">
+            {% thread.topic %}
+            <div class="ellipsis_menu" ng-click="swallow($event)">
+              <ul>
+                <li ng-click="renameThread(thread)">Rename</li>
+                <li ng-click="copyThread(thread)">Copy</li>
+                <li ng-click="cloneThread(thread)">Duplicate</li>
+                <li ng-click="deleteThread($index)">Delete</li>
+              </ul>
+            </div>
+          </li>
+        </ul>
+      </section>
+
+
+      <section>
+        <form ng-submit="search()" action="post">
+          <input type="search" ng-model="ui.search" placeholder="Search Dialog Library" />
+        </form>
+      </section>
+
+
+
+
+    </div>
+    <div class="dialog_view pane">
+      <header>
+        <!-- <div class="breadcrumbs">
+            <ul>
+                <li><a href="/admin/cms">Dialog</a></li>
+                <li ng-if="ui.current_thread.topic=='default'">{% ui.script.command %}</li>
+                <li ng-if="ui.current_thread.topic!='default'"><a href="#" ng-click="selectThread('default')">{% ui.script.command %}</a></li>
+                <li>{% ui.current_thread.topic %}</li>
+            </ul>
+        </div> -->
+        <h2>{% ui.current_thread.topic %}</h2>
+        <p>This is a description of the thread currently in view</p>
+
+      </header>
+      <div class="message_list">
+
+        <div
+          dnd-list="ui.current_thread.messages"
+          dnd-allowed-types="['message']"
+        >
+
+          <div ng-repeat="message in ui.current_thread.messages" class="line" ng-click="editMessage(message)"
+            dnd-draggable="message"
+            dnd-moved="ui.current_thread.messages.splice($index, 1);"
+            dnd-effect-allowed="move"
+            dnd-type="'message'"
+
+          >
+
+
+
+            <div class="message fromBot">
+              <!-- this is the bubble with text or other content in it -->
+              <div ng-if="message.text" class="text" ng-bind-html="render(message)"></div>
+              <div ng-if="message.action" class="message_action">
+                <div ng-if="message.condition" class="condition">
+                  <span class="utterance">{% message.condition.left | truncateString:35:true %}</span>
+                  <span class="test">{% message.condition.type %}</span>
+                  <span class="utterance">{% message.condition.right | truncateString:35:true %}</span>
+                </div>
+                <div class="ng-class:{with_condition: message.condition}; message_option {% generateActionClass(message.action) %}" ng-controller="messageActionController" ng-init="init(message)">
+                  <span ng-switch="message.action">
+                    <span ng-switch-when="next" class="action"><i class="fa fa-play-circle" aria-hidden="true"></i> Continue</span>
+                    <span ng-switch-when="stop" class="action"><i class="fa fa-hand-paper-o" aria-hidden="true"></i> Failed</span>
+                    <span ng-switch-when="timeout" class="action"><i class="fa fa-clock-o" aria-hidden="true"></i> Timed Out</span>
+                    <span ng-switch-when="repeat" class="action"><i class="fa fa-repeat" aria-hidden="true"></i> Repeat</span>
+                    <span ng-switch-when="wait" class="action"><i class="fa fa-commenting" aria-hidden="true"></i> Wait for more</span>
+                    <span ng-switch-when="complete" class="action"><i class="fa fa-check-square" aria-hidden="true"></i> Conversation Complete</span>
+                    <span ng-switch-when="execute_script" class="action"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Go to <span class="branch-title" ng-click="followOption(message,$event)">{% branch.execute.script | truncateString:35:true %}:{% branch.execute.thread | truncateString:35:true %}</span></span>
+                    <!-- <span ng-switch-default class="action"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Go to <span class="branch-title" ng-click="followOption(option||line,$event)">{% branch.action | truncateString:35:true %}</span></span> -->
+                    <span ng-switch-default class="action"><span bind-html-compile="getMessageAction(message)"></span>
+
+                  </span>
+                </div>
+              </div>
+            </div>
+
+
+            <!-- this should be the last thing in the message after any attachments -->
+            <div ng-if="message.capture_input">
+              <div ng-repeat="branch in message.branches" ng-if="branch.quick_reply" class="quick_reply">
+                {% branch.quick_reply_title || branch.pattern %}
+              </div>
+
+              <div class="summary" ng-if="message.capture_input">
+                  <div ng-if="message.key" class="message_option capture"><span class="action"><i class="fa fa-commenting" aria-hidden="true"></i> Collect answer into <span class="variable">{% message.key %}</span></span></div>
+                  <div class="paths" ng-if="message.branches.length>1">
+                    <div ng-if="!branch.default" ng-repeat="branch in message.branches" class="message_option {% generateActionClass(branch.action) %}">
+                      <span class="test">{% branch.type %}</span>
+                      <span ng-if="branch.pattern" class="utterance">{% branch.pattern | truncateString:35:true %}</span>
+
+                      <span ng-switch="branch.action" ng-controller="messageActionController" ng-init="init(branch)">
+                        <span ng-switch-when="next" class="action"><i class="fa fa-play-circle" aria-hidden="true"></i> Continue</span>
+                        <span ng-switch-when="stop" class="action"><i class="fa fa-hand-paper-o" aria-hidden="true"></i> Failed</span>
+                        <span ng-switch-when="timeout" class="action"><i class="fa fa-clock-o" aria-hidden="true"></i> Timed Out</span>
+                        <span ng-switch-when="repeat" class="action"><i class="fa fa-repeat" aria-hidden="true"></i> Repeat</span>
+                        <span ng-switch-when="wait" class="action"><i class="fa fa-commenting" aria-hidden="true"></i> Wait for more</span>
+                        <span ng-switch-when="complete" class="action"><i class="fa fa-check-square" aria-hidden="true"></i> Conversation Complete</span>
+                        <span ng-switch-when="execute_script" class="action"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Go to <span class="branch-title" ng-click="followOption(option||line,$event)">{% branch.execute.script | truncateString:35:true %}:{% branch.execute.thread | truncateString:35:true %}</span></span>
+                        <!-- <span ng-switch-default class="action"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Go to <span class="branch-title" ng-click="followOption(option||line,$event)">{% branch.action | truncateString:35:true %}</span></span> -->
+                        <span ng-switch-default class="action"><span bind-html-compile="getMessageAction(branch)"></span>
+                      </span>
+                    </div>
+                </div>
+                <div ng-if="message.branches.length > 1 && branch.default" ng-repeat="branch in message.branches" class="message_option {% generateActionClass(branch.action) %} else" >
+                  <span ng-switch="branch.action" ng-controller="messageActionController" ng-init="init(branch)">
+                    <span ng-switch-when="next" class="action"><i class="fa fa-play-circle" aria-hidden="true"></i> Continue</span>
+                    <span ng-switch-when="stop" class="action"><i class="fa fa-hand-paper-o" aria-hidden="true"></i> Failed</span>
+                    <span ng-switch-when="timeout" class="action"><i class="fa fa-clock-o" aria-hidden="true"></i> Timed Out</span>
+                    <span ng-switch-when="repeat" class="action"><i class="fa fa-repeat" aria-hidden="true"></i> Repeat</span>
+                    <span ng-switch-when="wait" class="action"><i class="fa fa-commenting" aria-hidden="true"></i> Wait for more</span>
+                    <span ng-switch-when="complete" class="action"><i class="fa fa-check-square" aria-hidden="true"></i> Conversation Complete</span>
+                    <span ng-switch-when="execute_script" class="action"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Go to <span class="branch-title" ng-click="followOption(option||line,$event)">{% branch.execute.script | truncateString:35:true %}:{% option.execute.thread | truncateString:35:true %}</span></span>
+                    <!-- <span ng-switch-default class="action"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Go to <span class="branch-title" ng-click="followOption(option||line,$event)">{% branch.action | truncateString:35:true %}</span></span> -->
+                    <span ng-switch-default class="action"><span bind-html-compile="getMessageAction(branch)"></span>
+                  </span>
+              </div>
+            </div>
+
+            </div>
+
+            <div class="ellipsis_menu" ng-click="swallow($event)">
+              <ul>
+                <li ng-click="copyMessage(message);">Copy</li>
+                <li ng-click="cloneMessage(message);">Duplicate</li>
+                <li ng-click="deleteMessage($index);">Delete</li>
+              </ul>
+            </div>
+
+          </div>
+
+          <div class="dndPlaceholder line">
+            <div class="message">
+              <div class="text">...</div>
+            </div>
+          </div>
+
+        </div>
+        <div class="addMessageWidget">
+          <button ng-click="addMessage(true)">Add Message</button>
+          <button ng-click="addAction(true)">Add Action</button>
+        </div>
+      </div>
+      <div class="composer">
+        <form method="post" ng-submit="addMessage()">
+          <input type="text" ng-model="ui.new_message" placeholder="Compose message here" />
+          <button type="submit">Add</button>
+        </form>
+      </div>
+    </div>
+    <div class="ng-class: {active: ui.edit_dialog_open}; edit_dialog_overlay" ng-if="ui.edit_dialog_template"> <!--  ng-click="closeDialog($event)" -->
+      <div ng-include="ui.edit_dialog_template"></div>
+    </div>
+
+  </section>
+</div>

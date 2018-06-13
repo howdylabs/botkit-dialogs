@@ -1,0 +1,63 @@
+
+<script src="/plugins/cms/controller.js"></script>
+<div ng-controller="view_scripts" class="wrapper">
+  <h1>Dialogs</h1>
+
+  <div class="toolbar">
+    <ul>
+      <li>
+        <button ng-click="newScript()">New</button>
+      </li>
+      <li>
+        <input type="search" ng-model="ui.search" placeholder="Search " />
+      </li>
+    </ul>
+    <ul class="right">
+      <li>
+        <button>Import</button>
+      </li>
+      <li>
+        <button ng-disabled="!ui.bulkOps">Export</button>
+      </li>
+      <li>
+        <button ng-disabled="!ui.bulkOps" ng-click="deleteScripts()">Delete</button>
+      </li>
+    </ul>
+  </div>
+
+  <table class="cells" cellspacing="0" cellpadding="0">
+    <tr class="header">
+        <th class="select" ng-click="selectAll(ui.scripts)">
+            <input type="checkbox" ng-checked="ui.selectAll" />
+        </th>
+      <th class="cell">
+        Name
+      </th>
+      <th class="cell right">
+        Created
+      </th>
+      <th class="cell ellipsis">
+      </th>
+    </tr>
+    <tr ng-repeat="script in ui.scripts" class="ng-class:{selected: script.$$selected};">
+        <td class="cell select" ng-click="select(script, ui.scripts)" >
+            <input type="checkbox" ng-checked="script.$$selected" />
+        </td>
+      <td class="cell">
+        <a ng-href="/admin/cms/{% script._id %}">{% script.command %}</a>
+      </td>
+      <td class="cell right">
+        {% script.created | date : "short" %}
+      </td>
+      <td class="cell ellipsis">
+        <div class="ellipsis_menu" ng-click="swallow($event)">
+          <ul>
+            <li ng-click="renameScript(script)">Rename</li>
+            <li ng-click="cloneScript(script)">Duplicate</li>
+            <li ng-click="deleteScript(script)">Delete</li>
+          </ul>
+        </div>
+      </td>
+    </tr>
+  </table>
+</div>

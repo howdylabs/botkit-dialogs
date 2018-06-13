@@ -1,0 +1,70 @@
+<div ng-controller="execute_script_widget" class="execute_script_widget">
+
+    <div class="current_action" ng-if="ui.execute_script && !ui.starting_points">
+        <label>Current Action</label>
+        <div class="message_option big">
+            <span class="action"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Go to <span class="branch-title">{% ui.current_condition.options.script %}:{% ui.current_condition.options.thread %}</span></span>
+        </div>
+        <br />
+        <label class="small">Preview</label>
+        <div class="message_list">
+          <div class="message">
+            <div ng-bind-html="summarizeThread(ui.execute_script,ui.current_condition.options.thread)" class="text"></div>
+          </div>
+        </div>
+    </div>
+    <div class="script_browser">
+        <form ng-submit="searchScripts(ui.q,true,true)">
+            <div class="addon">
+                <button ng-if="ui.starting_points" ng-click="resetSearch()">&laquo;</button>
+                <input type="search" ng-model="ui.q" placeholder="Search scripts by name, thread or message text"><button type="submit">Search</button>
+            </div>
+        </form>
+
+        <div class="script_results" ng-if="!ui.search_results">
+          <p>
+            Search dialog library to link this conversation to another starting point
+          </p>
+        </div>
+        <div class="script_results" ng-if="ui.search_results">
+          <div class="scripts">
+            <ul>
+              <li ng-repeat="script in ui.search_results"  ng-click="showStartingPoints(script)" class="ng-class:{active: script._id == ui.starting_point._id}">
+                <a href="#">{% script.command %}</a>
+              </li>
+              <li ng-if="ui.search_results.length==ui.limit" ng-click="loadMore()">
+                Load More
+              </li>
+
+            </ul>
+          </div>
+          <div class="starting_points" ng-if="ui.starting_points">
+            <p ng-if="!ui.starting_points">
+              Select a script on the right to view available starting points
+            </p>
+
+            <ul>
+                <li ng-repeat="point in ui.starting_points" ng-click="selectScript(ui.starting_point._id, ui.starting_point.command, point.topic)">
+                    <div class="message_list">
+                      <div class="message" ng-repeat="message in point.$$summary">
+                        <div class="text" ng-if="message.type!='ellipsis'">
+                          {% message.text %}
+                        </div>
+                        <div class="ellipsis" ng-if="message.type=='ellipsis'">
+                          {% message.text %}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="message_option small">
+                        <span class="action"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Go to
+                          <span class="branch-title">{% ui.starting_point.command %}:{% point.topic %}</span>
+                        </span>
+                    </div>
+                    <!-- <span ng-bind-html="summarizeThread(ui.starting_point,point.topic)" class="threadSummary"></span> -->
+
+                </li>
+            </ul>
+          </div>
+        </div>
+    </div>
+</div>

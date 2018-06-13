@@ -1,0 +1,138 @@
+<div class="dialog message_detail" ng-controller="message_detail">
+  <header>
+      <h1>Edit Message</h1>
+      <button ng-click="closeDialog($event)" class="x"><i class="fa fa-times" aria-hidden="true"></i></button>
+  </header>
+  <section class="pane">
+
+    <p>
+      <label>Text</label>
+      <textarea ng-model="ui.current_message.text[ui.text_version]" placeholder="Message Text"></textarea>
+    </p>
+
+    <h2>Custom Fields</h2>
+
+    <h2>User Input</h2>
+
+    <p>
+      <label class="checkbox">
+        <input type="checkbox" ng-checked="ui.current_message.capture_input" ng-click="ui.current_message.capture_input=!ui.current_message.capture_input">
+        Collect user input
+      </label>
+    </p>
+
+    <p>
+      <label>Key</label>
+      <input type="text" ng-model="ui.current_message.key" placeholder="Variable Key Name" />
+    </p>
+
+    <div ng-if="ui.current_message.capture_input">
+      <div class="toolbar">
+        <ul>
+          <li>
+            <button ng-click="addBranch(ui.current_message)">New Condition</button>
+          </li>
+        </ul>
+        <ul class="right">
+          <li>
+            <button ng-disabled="!ui.bulkOps" ng-click="deleteBranches()">Delete</button>
+          </li>
+        </ul>
+      </div>
+      <table class="cells" cellspacing="0" cellpadding="0">
+        <tr class="header" ng-if="ui.current_message.branches.length">
+          <th class="select" ng-click="selectAll(ui.current_message.branches)">
+              <input type="checkbox" ng-checked="ui.selectAll" />
+          </th>
+          <th>
+            Reply
+          </th>
+          <th>
+            Test
+          </th>
+          <th>
+            Action
+          </th>
+          <th>
+            Quick Reply
+          </th>
+        </tr>
+        <tbody
+               dnd-list="ui.current_message.branches"
+               dnd-allowed-types="['branch']"
+        >
+
+
+        <tr ng-repeat="branch in ui.current_message.branches" ng-if="!branch.default" class="ng-class:{selected: branch.$$selected};"
+          dnd-draggable="branch"
+          dnd-moved="ui.current_message.branches.splice($index, 1);"
+          dnd-effect-allowed="move"
+          dnd-type="'branch'"
+        >
+          <td class="cell select" ng-click="select(branch, ui.current_message.branches)" >
+              <input type="checkbox" ng-checked="branch.$$selected" />
+          </td>
+          <td dnd-nodrag>
+            <input type="text" ng-model="branch.pattern" placeholder="Pattern" />
+          </td>
+          <td dnd-nodrag ng-click="editCondition(branch)">
+            {% branch.type %}
+          </td>
+          <td dnd-nodrag ng-click="editCondition(branch)">
+            <div class="message_option {% branch.action %}" ng-controller="messageActionController" ng-init="init(branch)">
+              <span ng-switch="branch.action">
+                <span ng-switch-when="next" class="action"><i class="fa fa-play-circle" aria-hidden="true"></i> Continue</span>
+                <span ng-switch-when="stop" class="action"><i class="fa fa-hand-paper-o" aria-hidden="true"></i> Failed</span>
+                <span ng-switch-when="timeout" class="action"><i class="fa fa-clock-o" aria-hidden="true"></i> Timed Out</span>
+                <span ng-switch-when="repeat" class="action"><i class="fa fa-repeat" aria-hidden="true"></i> Repeat</span>
+                <span ng-switch-when="wait" class="action"><i class="fa fa-commenting" aria-hidden="true"></i> Wait for more</span>
+                <span ng-switch-when="complete" class="action"><i class="fa fa-check-square" aria-hidden="true"></i> Conversation Complete</span>
+                <span ng-switch-when="execute_script" class="action"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Go to <span class="branch-title">{% branch.execute.script | truncateString:35:true %}:{% branch.execute.thread | truncateString:35:true %}</span></span>
+                <span ng-switch-default class="action"><span bind-html-compile="getMessageAction(branch)"></span>
+              </span>
+            </div>
+          </td>
+          <td dnd-nodrag>
+            <input type="checkbox" ng-checked="branch.quick_reply" ng-click="branch.quick_reply=!branch.quick_reply"/>
+            <input ng-if="branch.quick_reply" ng-model="branch.quick_reply_title" placeholder="Title" />
+          </td>
+        </tr>
+        <tr class="dndPlaceholder"><td colspan="5"></td></tr>
+        </tbody>
+        <tr ng-repeat="branch in ui.current_message.branches" ng-if="branch.default" class="ng-class:{selected: branch.$$selected};">
+          <td class="cell select" >
+          </td>
+          <td colspan="2">
+            if no condition matches
+          </td>
+          <td dnd-nodrag ng-click="editCondition(branch)">
+            <div class="message_option {% branch.action %}" ng-controller="messageActionController" ng-init="init(branch)">
+              <span ng-switch="branch.action">
+                <span ng-switch-when="next" class="action"><i class="fa fa-play-circle" aria-hidden="true"></i> Continue</span>
+                <span ng-switch-when="stop" class="action"><i class="fa fa-hand-paper-o" aria-hidden="true"></i> Failed</span>
+                <span ng-switch-when="timeout" class="action"><i class="fa fa-clock-o" aria-hidden="true"></i> Timed Out</span>
+                <span ng-switch-when="repeat" class="action"><i class="fa fa-repeat" aria-hidden="true"></i> Repeat</span>
+                <span ng-switch-when="wait" class="action"><i class="fa fa-commenting" aria-hidden="true"></i> Wait for more</span>
+                <span ng-switch-when="complete" class="action"><i class="fa fa-check-square" aria-hidden="true"></i> Conversation Complete</span>
+                <span ng-switch-when="execute_script" class="action"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Go to <span class="branch-title" ng-click="followOption(option||line,$event)">{% option.execute.script | truncateString:35:true %}:{% option.execute.thread | truncateString:35:true %}</span></span>
+                <span ng-switch-default class="action"><span bind-html-compile="getMessageAction(branch)"></span>
+              </span>
+            </div>
+          </td>
+          <td>
+          </td>
+        </tr>
+      </table>
+
+    </div>
+
+    <div class="toolbar bottom">
+      <ul>
+        <li>
+          <button class="danger" ng-click="deleteMessage(ui.current_message)">Delete Message</button>
+        </li>
+      </ul>
+    </div>
+
+  </section>
+</section>

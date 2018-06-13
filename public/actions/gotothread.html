@@ -1,0 +1,34 @@
+<div ng-controller="gotothread_controller" class="execute_script_widget">
+
+    <div class="current_action">
+        <label>Current Action</label>
+        <div class="message_option big">
+            <span class="action"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Go to <span class="branch-title">{% ui.current_condition.options.thread %}</span></span>
+        </div>
+        <br />
+        <label class="small">Preview</label>
+        <div class="message_list">
+            <div class="message">
+                <div ng-bind-html="summarizeThread(ui.script,ui.current_condition.options.thread)" class="text"></div>
+            </div>
+        </div>
+    </div>
+    <div class="script_browser">
+        <div class="starting_points">
+            <ul>
+                <li ng-repeat="point in ui.script.threads" ng-click="ui.current_condition.options.thread=point.topic">
+                    <div class="message_list">
+                        <div class="message">
+                          <div ng-bind-html="summarizeThread(ui.script,point.topic)" class="text"></div>
+                        </div>
+                    </div>
+                    <div class="message_option small">
+                        <span class="action"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Go to
+                          <span class="branch-title">{% point.topic %}</span>
+                        </span>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>

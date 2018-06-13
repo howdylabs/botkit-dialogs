@@ -1,0 +1,16 @@
+{
+  "name": "botkit-cms",
+  "version": "1.0.0",
+  "description": "",
+  "main": "cms_plugin.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "debug": "^3.1.0",
+    "express": "^4.16.3",
+    "path": "^0.12.7"
+  }
+}
