@@ -1,0 +1,57 @@
+<script src="/plugins/cms/controller.js"></script>
+<div ng-controller="view_scripts" class="wrapper">
+  <div ng-controller="triggersController">
+      <h1>Triggers</h1>
+
+
+      <form ng-submit="addTrigger()" class="script_triggers">
+        <div class="triggers">
+            <p><label>If the incoming message passes the test:</label>
+              <select ng-model="ui.type" requied ng-options="test.type as test.description for test in ui.available_tests"></select>
+              <input ng-model="ui.pattern" required ng-if="!isOneSided(ui.type)">
+            </p>
+
+        </div>
+        <div class="action">
+          <p>
+              <label>Respond using script:</label>
+              <select ng-model="ui.action" required ng-options="script._id as script.command for script in ui.scripts"></select>
+              <button type="submit">Add</button>
+          </p>
+        </div>
+    </form>
+
+    <div class="toolbar" ng-if="ui.triggers.length">
+      <ul>
+        <li>
+          <button ng-click="deleteTriggers()">Delete</button>
+        </li>
+      </ul>
+    </div>
+
+
+    <div class="script_triggers" ng-repeat="group in ui.groups">
+      <div class="triggers">
+
+          <p><label>If:</label></p>
+          <ul class="trigger_list">
+            <li ng-repeat="trigger in group.triggers" class="ng-class:{selected: trigger.$$selected}">
+              <input type="checkbox" ng-checked="trigger.$$selected" ng-click="select(trigger, group.triggers)">
+              <span class="test">{% describeTest(trigger) %}
+                <span class="right utterance" ng-if="!isOneSided(trigger.type)">{% trigger.pattern %}</span>
+              </span>
+            </li>
+          </ul>
+      </div>
+      <div class="action">
+        <p>
+            <label>Then:</label>
+        </p>
+
+        <span class="branch-title">{% group.script.command %}</span>
+      </div>
+  </div>
+
+
+  </div>
+</div>

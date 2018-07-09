@@ -1,59 +1,58 @@
 <div class="dialog" ng-controller="edit_condition">
-  <header>
-    <button ng-click="close()" class="x"><i class="fa fa-times" aria-hidden="true"></i></button>
-  </header>
-  <section class="pane">
+    <header>
+        <button ng-click="closeDialog()" class="x"><i class="fa fa-times" aria-hidden="true"></i></button>
+    </header>
+    <section class="pane">
 
-    <p ng-if="ui.current_message.key && !ui.current_condition.default">
-    IF <span class="variable">{{user.{% ui.current_message.key %}}}</span>
+        <div class="condition_row" ng-if="ui.current_message || ui.current_condition.condition.type">
+            <div class="title">
+                If
+            </div>
+            <div class="more_stuff" ng-if="ui.current_message.key && !ui.current_condition.default">
+                <span class="variable">{{user.{% ui.current_message.key %}}}</span>
+                <select ng-model="ui.current_condition.type" ng-options="test.type as test.description for test in ui.available_tests"></select>
+                <input ng-model="ui.current_condition.pattern" ng-if="!isOneSided(ui.current_condition.type)">
+            </div>
+            <div class="more_stuff" ng-if="ui.current_message.key && ui.current_condition.default">
+                no other condition matches
+            </div>
+            <!-- this is a standalone condition -->
+            <div class="more_stuff" ng-if="!ui.current_message && ui.current_condition.condition.type">
+                <input ng-model="ui.current_condition.condition.left">
+                <select ng-model="ui.current_condition.condition.type" ng-options="test.type as test.description for test in ui.available_tests"></select>
+                <input ng-model="ui.current_condition.condition.right" ng-if="!isOneSided(ui.current_condition.condition.type)">
+            </div>
+            <button class="xbutton" ng-if="!ui.current_message && ui.current_condition.condition.type" ng-click="ui.current_condition.condition=null">
+              <i class="fa fa-trash" aria-hidden="true"></i>
+            </button>
 
-    <select ng-model="ui.current_condition.type" ng-options="test.type as test.description for test in ui.available_tests"></select>
+        </div>
+        <button ng-if="!ui.current_message && !ui.current_condition.condition" ng-click="ui.current_condition.condition.type='string'">Add Condition</button>
+        <div class="condition_row">
+            <div class="title" ng-if="ui.current_message || ui.current_condition.condition.type">
+                Then
+            </div>
+            <div class="title" ng-if="!ui.current_message && !ui.current_condition.condition.type">
+                Action
+            </div>
+            <div class="more_stuff">
+                <select ng-model="ui.current_condition.action" ng-change="ui.current_condition.options={};">
+                  <optgroup label="Script Action">
+                    <option value="next">Continue</option>
+                    <option value="repeat">Repeat</option>
+                    <option value="wait">Wait for more input</option>
+                    <option value="stop">Failed</option>
+                    <option value="complete">Conversation Completed</option>
 
-    <input ng-model="ui.current_condition.pattern">
-    </p>
+                  </optggroup>
+                  <optgroup ng-if="ui.available_actions" label="Custom Actions">
+                    <option ng-repeat="action in ui.available_actions" ng-value="action.type">{% action.description %}</option>
+                  </optgroup>
+                </select>
+            </div>
+        </div>
 
-    <p ng-if="ui.current_message.key && ui.current_condition.default">
-      IF no other condition matches...
-    </p>
-
-    <!-- this is a standalone condition -->
-    <div ng-if="!ui.current_message">
-      <p ng-if="ui.current_condition.condition.type">
-        IF
-
-        <input ng-model="ui.current_condition.condition.left">
-
-        <select ng-model="ui.current_condition.condition.type" ng-options="test.type as test.description for test in ui.available_tests"></select>
-
-        <input ng-model="ui.current_condition.condition.right">
-
-      </p>
-      <p ng-if="!ui.current_condition.condition">
-        <button ng-click="ui.current_condition.condition.type='string'">Add Condition</button>
-      </p>
-
-    </div>
-
-    <p>
-      THEN
-
-      <select ng-model="ui.current_condition.action">
-        <optgroup label="Script Action">
-          <option value="next">Continue</option>
-          <option value="repeat">Repeat</option>
-          <option value="wait">Wait for more input</option>
-          <option value="stop">Failed</option>
-          <option value="complete">Conversation Completed</option>
-
-        </optggroup>
-        <optgroup ng-if="ui.available_actions" label="Custom Actions">
-          <option ng-repeat="action in ui.available_actions" ng-value="action.type">{% action.description %}</option>
-        </optgroup>
-      </select>
-    </p>
-
-    <label ng-if="ui.widget_url" class="tag">Action Details</label>
-    <div ng-if="ui.widget_url" ng-include="ui.widget_url" class="widget"></div>
-
-  </section>
+        <label ng-if="ui.widget_url" class="tag">Action Details</label>
+        <div ng-if="ui.widget_url" ng-include="ui.widget_url" class="widget"></div>
+    </section>
 </div>

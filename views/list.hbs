@@ -9,7 +9,12 @@
         <button ng-click="newScript()">New</button>
       </li>
       <li>
-        <input type="search" ng-model="ui.search" placeholder="Search " />
+        <button ng-click="goto('/admin/cms/triggers')">Triggers</button>
+      </li>
+      <li>
+        <form ng-submit="search()">
+          <input type="search" ng-model="ui.search" placeholder="Search " />
+        </form>
       </li>
     </ul>
     <ul class="right">

@@ -2,21 +2,35 @@
 
 <div class="workspace" ng-controller="view_script" >
 
+
+  <header>
+    <button ng-click="goto('/admin/cms')"><i class="fa fa-caret-left" aria-hidden="true"></i> List</button>
+    &nbsp;
+    <div class="branch-title">
+      {% ui.script.command %} : {% ui.current_thread.topic %}
+    </div>
+
+
+  </header>
+
     <div class="toolbar">
       <ul>
-        <li>
-          <button ng-click="goto('/admin/cms')"><i class="fa fa-caret-left" aria-hidden="true"></i> List</button>
-        </li>
         <li>
           <button ng-click="newThread()">New Thread</button>
         </li>
       </ul>
       <ul class="right">
         <li>
-          <button ng-click="save()">Save</button>
+          <button class="ng-class:{hangry: ui.dirty};" ng-click="save()">Save</button>
         </li>
         <li>
           <button ng-click="logScript()">Debug</button>
+        </li>
+        <li>
+          <button ng-click="ui.showLogic=!ui.showLogic">
+            <span ng-if="ui.showLogic">Hide Logic</span>
+            <span ng-if="!ui.showLogic">Show Logic</span>
+          </button>
         </li>
       </ul>
     </div>
@@ -24,7 +38,8 @@
   <section>
     <div class="dialog_navigator pane">
       <section class="threads">
-        <h2>{% ui.script.command %}</h2>
+        <!-- <h2>{% ui.script.command %}</h2> -->
+        <h2>Threads</h2>
         <ul ng-if="ui.script">
           <li ng-repeat="thread in ui.script.threads" ng-if="thread.topic=='default'" ng-click="selectThread(thread.topic);" class="ng-class:{selected: (thread.topic==ui.current_thread.topic)};">
             <div class="ellipsis_menu" ng-click="swallow($event)">
@@ -50,31 +65,70 @@
       </section>
 
 
-      <section>
-        <form ng-submit="search()" action="post">
+      <!-- <section ng-controller="view_scripts">
+
+        <h2>Recent Scripts</h2>
+        <form ng-submit="search()">
           <input type="search" ng-model="ui.search" placeholder="Search Dialog Library" />
         </form>
-      </section>
+
+        <ul>
+          <li ng-repeat="script in ui.scripts" class="ng-class: {current: script._id == ui.script._id};">
+            <a href="/admin/cms/{% script._id %}">{% script.command %}</a>
+          </li>
+        </ul>
+
+
+      </section> -->
 
 
 
 
     </div>
     <div class="dialog_view pane">
-      <header>
-        <!-- <div class="breadcrumbs">
-            <ul>
-                <li><a href="/admin/cms">Dialog</a></li>
-                <li ng-if="ui.current_thread.topic=='default'">{% ui.script.command %}</li>
-                <li ng-if="ui.current_thread.topic!='default'"><a href="#" ng-click="selectThread('default')">{% ui.script.command %}</a></li>
-                <li>{% ui.current_thread.topic %}</li>
-            </ul>
-        </div> -->
-        <h2>{% ui.current_thread.topic %}</h2>
-        <p>This is a description of the thread currently in view</p>
-
-      </header>
       <div class="message_list">
+        <header ng-if="ui.showLogic">
+          <div ng-if="ui.current_thread.topic=='default'">
+            <!-- <p>This is the entry point for the {% ui.script.command %} script.</p> -->
+                <ul class="trigger_list" ng-if="ui.triggers.length">
+                  <li>Triggers:</li>
+                  <li ng-repeat="trigger in ui.triggers">
+                  <span class="test">{% describeTest(trigger) %} <span class="right utterance" ng-if="!isOneSided(trigger.type)">{% trigger.pattern %}</span></span>
+                  </li>
+                </ul>
+
+                <div ng-if="ui.backlinks.length" class="message_option">
+                <label>Transition from:</label>
+                <span class="branch-title"  ng-repeat="link in ui.backlinks" ng-click="followOption(link, $event)">{% link.script ? link.script + ':' + link.thread : link.thread %}</span>
+                </div>
+            <p ng-if="!ui.triggers.length && !ui.backlinks.length">
+              <span class="warning"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> No known entry point</span>
+            </p>
+
+            <div class="message_option next">
+            <span class="action ">
+              <i class="fa fa-play-circle" aria-hidden="true"></i> Start
+            </span>
+          </div>
+          </div>
+          <div ng-if="ui.current_thread.topic!='default'">
+            <!-- <p>This a thread currently in {% ui.script.command %} script.</p> -->
+
+            <div ng-if="ui.backlinks.length" class="message_option">
+              <label>Transition from:</label>
+              <span class="branch-title"  ng-repeat="link in ui.backlinks" ng-click="followOption(link, $event)">{% link.script ? link.script + ':' + link.thread : link.thread %}</span>
+            </div>
+
+            <p ng-if="!ui.backlinks.length">
+              <span class="warning"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> No known entry point</span>
+            </p>
+            <div class="message_option next">
+            <span class="action ">
+              <i class="fa fa-play-circle" aria-hidden="true"></i> Start
+            </span>
+          </div>
+          </div>
+        </header>
 
         <div
           dnd-list="ui.current_thread.messages"
@@ -83,7 +137,7 @@
 
           <div ng-repeat="message in ui.current_thread.messages" class="line" ng-click="editMessage(message)"
             dnd-draggable="message"
-            dnd-moved="ui.current_thread.messages.splice($index, 1);"
+            dnd-moved="ui.current_thread.messages.splice($index, 1); markDirty();"
             dnd-effect-allowed="move"
             dnd-type="'message'"
 
@@ -94,11 +148,16 @@
             <div class="message fromBot">
               <!-- this is the bubble with text or other content in it -->
               <div ng-if="message.text" class="text" ng-bind-html="render(message)"></div>
-              <div ng-if="message.action" class="message_action">
+              <div ng-if="!ui.showLogic && message.action" class="collapsed_logic">
+                <i class="fa fa-code" aria-hidden="true"></i> <span ng-if="message.condition">conditional </span> action
+              </div>
+              <div ng-if="ui.showLogic && message.action" class="message_action">
                 <div ng-if="message.condition" class="condition">
-                  <span class="utterance">{% message.condition.left | truncateString:35:true %}</span>
-                  <span class="test">{% message.condition.type %}</span>
-                  <span class="utterance">{% message.condition.right | truncateString:35:true %}</span>
+                  <span class="test">
+                    <span class="left utterance">{% message.condition.left | truncateString:35:true %}</span>
+                    {% describeTest(message.condition) %}
+                    <span class="right utterance" ng-if="!isOneSided(message.condition.type)">{% message.condition.right | truncateString:35:true %}</span>
+                  </span>
                 </div>
                 <div class="ng-class:{with_condition: message.condition}; message_option {% generateActionClass(message.action) %}" ng-controller="messageActionController" ng-init="init(message)">
                   <span ng-switch="message.action">
@@ -124,12 +183,16 @@
                 {% branch.quick_reply_title || branch.pattern %}
               </div>
 
-              <div class="summary" ng-if="message.capture_input">
+              <div class="summary">
                   <div ng-if="message.key" class="message_option capture"><span class="action"><i class="fa fa-commenting" aria-hidden="true"></i> Collect answer into <span class="variable">{% message.key %}</span></span></div>
-                  <div class="paths" ng-if="message.branches.length>1">
+                  <div ng-if="!ui.showLogic && message.branches.length>1" class="collapsed_logic">
+                    <i class="fa fa-code" aria-hidden="true"></i> {% message.branches.length %} conditions
+                  </div>
+                  <div class="paths" ng-if="ui.showLogic && message.branches.length>1">
                     <div ng-if="!branch.default" ng-repeat="branch in message.branches" class="message_option {% generateActionClass(branch.action) %}">
-                      <span class="test">{% branch.type %}</span>
-                      <span ng-if="branch.pattern" class="utterance">{% branch.pattern | truncateString:35:true %}</span>
+                      <span class="test">
+                        {% describeTest(branch) %}
+                        <span ng-if="!isOneSided(branch.type) && branch.pattern" class="right utterance">{% branch.pattern | truncateString:35:true %}</span></span>
 
                       <span ng-switch="branch.action" ng-controller="messageActionController" ng-init="init(branch)">
                         <span ng-switch-when="next" class="action"><i class="fa fa-play-circle" aria-hidden="true"></i> Continue</span>
@@ -144,7 +207,7 @@
                       </span>
                     </div>
                 </div>
-                <div ng-if="message.branches.length > 1 && branch.default" ng-repeat="branch in message.branches" class="message_option {% generateActionClass(branch.action) %} else" >
+                <div ng-if="ui.showLogic && message.branches.length > 1 && branch.default" ng-repeat="branch in message.branches" class="message_option {% generateActionClass(branch.action) %} else" >
                   <span ng-switch="branch.action" ng-controller="messageActionController" ng-init="init(branch)">
                     <span ng-switch-when="next" class="action"><i class="fa fa-play-circle" aria-hidden="true"></i> Continue</span>
                     <span ng-switch-when="stop" class="action"><i class="fa fa-hand-paper-o" aria-hidden="true"></i> Failed</span>

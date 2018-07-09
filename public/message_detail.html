@@ -65,7 +65,7 @@
 
         <tr ng-repeat="branch in ui.current_message.branches" ng-if="!branch.default" class="ng-class:{selected: branch.$$selected};"
           dnd-draggable="branch"
-          dnd-moved="ui.current_message.branches.splice($index, 1);"
+          dnd-moved="ui.current_message.branches.splice($index, 1);  markDirty();"
           dnd-effect-allowed="move"
           dnd-type="'branch'"
         >
@@ -76,7 +76,7 @@
             <input type="text" ng-model="branch.pattern" placeholder="Pattern" />
           </td>
           <td dnd-nodrag ng-click="editCondition(branch)">
-            {% branch.type %}
+            <div class="test">{% describeTest(branch) %}</div>
           </td>
           <td dnd-nodrag ng-click="editCondition(branch)">
             <div class="message_option {% branch.action %}" ng-controller="messageActionController" ng-init="init(branch)">

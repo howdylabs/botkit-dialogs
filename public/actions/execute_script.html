@@ -1,6 +1,6 @@
 <div ng-controller="execute_script_widget" class="execute_script_widget">
 
-    <div class="current_action" ng-if="ui.execute_script && !ui.starting_points">
+    <div class="current_action" ng-if="ui.current_condition.options.script">
         <label>Current Action</label>
         <div class="message_option big">
             <span class="action"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Go to <span class="branch-title">{% ui.current_condition.options.script %}:{% ui.current_condition.options.thread %}</span></span>
@@ -12,8 +12,11 @@
             <div ng-bind-html="summarizeThread(ui.execute_script,ui.current_condition.options.thread)" class="text"></div>
           </div>
         </div>
+
+        <button class="select" ng-click="ui.current_condition.options = {};">Change</button>
+
     </div>
-    <div class="script_browser">
+    <div class="script_browser" ng-if="!ui.current_condition.options.script">
         <form ng-submit="searchScripts(ui.q,true,true)">
             <div class="addon">
                 <button ng-if="ui.starting_points" ng-click="resetSearch()">&laquo;</button>
@@ -44,8 +47,14 @@
             </p>
 
             <ul>
-                <li ng-repeat="point in ui.starting_points" ng-click="selectScript(ui.starting_point._id, ui.starting_point.command, point.topic)">
+                <li ng-repeat="point in ui.starting_points">
                     <div class="message_list">
+                      <div class="message_option small">
+                          <span class="action"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Go to
+                            <span class="branch-title">{% ui.starting_point.command %}:{% point.topic %}</span>
+                          </span>
+                      </div>
+
                       <div class="message" ng-repeat="message in point.$$summary">
                         <div class="text" ng-if="message.type!='ellipsis'">
                           {% message.text %}
@@ -54,14 +63,9 @@
                           {% message.text %}
                         </div>
                       </div>
-                    </div>
-                    <div class="message_option small">
-                        <span class="action"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Go to
-                          <span class="branch-title">{% ui.starting_point.command %}:{% point.topic %}</span>
-                        </span>
-                    </div>
-                    <!-- <span ng-bind-html="summarizeThread(ui.starting_point,point.topic)" class="threadSummary"></span> -->
+                      <button class="select" ng-click="selectScript(ui.starting_point._id, ui.starting_point.command, point.topic)">Select</button>
 
+                    </div>
                 </li>
             </ul>
           </div>
