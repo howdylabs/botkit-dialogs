@@ -1,5 +1,5 @@
 {
-  "name": "botkit-cms",
+  "name": "botkit-dialogs",
   "version": "1.0.0",
   "main": "cms_plugin.js",
   "scripts": {
