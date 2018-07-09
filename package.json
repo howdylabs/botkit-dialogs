@@ -1,7 +1,6 @@
 {
   "name": "botkit-cms",
   "version": "1.0.0",
-  "description": "",
   "main": "cms_plugin.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -11,5 +10,15 @@
   "dependencies": {
     "async": "^2.6.1",
     "debug": "^3.1.0"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/howdylabs/botkit-dialogs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/howdylabs/botkit-dialogs/issues"
+  },
+  "homepage": "https://github.com/howdylabs/botkit-dialogs#readme",
+  "description": ""
 }
