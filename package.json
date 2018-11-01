@@ -5,8 +5,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "benbrown@gmail.com",
+  "license": "MIT",
   "dependencies": {
     "async": "^2.6.1",
     "debug": "^3.1.0"
